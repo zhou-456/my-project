@@ -60,3 +60,61 @@
 ---
 
 ## 📁 项目结构
+my-project/ ├── Core/ │ ├── Src/ │ │ ├── main.c # 系统初始化，FreeRTOS启动 │ │ ├── freertos.c # 任务创建，互斥锁初始化 │ │ ├── system_data.c # 全局数据结构 + 互斥锁管理 │ │ ├── sensor_task.c # 传感器采集任务（1s周期） │ │ ├── wifi_task.c # WiFi/MQTT连接与数据上报 │ │ ├── display_task.c # LCD显示与UI渲染 │ │ ├── system_task.c # 按键扫描 + 报警逻辑 + 设置编辑 │ │ ├── lcd.c # ST7735驱动（批量SPI优化） │ │ ├── sht30.c # 温湿度驱动（CRC8查表） │ │ ├── sgp30.c # 空气质量驱动（软件I2C） │ │ ├── pm25.c # PM2.5驱动（DWT延时+中值滤波） │ │ ├── mq_senser.c # MQ气体驱动（DMA+滑动平均） │ │ ├── ds1302.c # RTC驱动（突发模式+RAM操作） │ │ ├── esp8266.c # WiFi/MQTT驱动（AT指令+状态机） │ │ ├── key.c # 按键扫描（状态机，消抖） │ │ ├── alarm.c # 蜂鸣器+报警灯驱动 │ │ └── led.c # LED控制 │ └── Inc/ # 头文件 ├── Drivers/ # HAL库驱动 └── README.md
+
+---
+
+## 🔧 环境要求
+
+- **IDE**: Keil MDK 5.38（ARM 编译器 6）
+- **固件库**: STM32CubeF1 HAL 库
+- **RTOS**: FreeRTOS CMSIS-RTOS v1
+- **调试工具**: ST-Link V2，串口助手（115200 波特率）
+
+---
+
+## 🚀 快速开始
+
+1. **克隆仓库**
+   ```bash
+   git clone https://github.com/zhou-456/my-project.git
+┌─────────────────────────────────────────┐
+│ FreeRTOS内核 │
+├─────────┬─────────┬─────────┬──────────┤
+│ 传感器 │ WiFi │ LCD │ 系统 │
+│ 任务 │ 任务 │ 任务 │ 任务 │
+│ (1秒) │ (10秒) │(300毫秒) │(20毫秒) │
+└────┬────┴────┬────┴────┬────┴────┬─────┘
+     │         │         │         │
+┌────▼────┐ ┌──▼──┐ ┌────▼────┐ ┌──▼──┐
+│ SHT30   │ │ESP8266│ │ TFT-LCD │ │按键 │
+│ SGP30   │ │MQTT  │ │ 128×160 │ │蜂鸣器│
+│ MQ136/7 │ │OneNET│ │  UI     │ │报警灯│
+│ GP2Y    │ │      │ │         │ │DS1302│
+│ DS1302  │ │      │ │         │ │     │
+└─────────┘ └──────┘ └─────────┘ └─────┘
+              │
+        ┌─────▼─────┐
+        │  OneNET   │
+        │  云平台   │
+        └───────────┘
+功能	引脚	模式	
+LCD_CS	PA4	SPI1_NSS	
+LCD_DC	PB0	GPIO_Output	
+LCD_RST	PB1	GPIO_Output	
+SHT30_SCL	PB6	GPIO_OD (I2C)	
+SHT30_SDA	PB7	GPIO_OD (I2C)	
+SGP30_SCL	PB10	GPIO_OD (I2C)	
+SGP30_SDA	PB11	GPIO_OD (I2C)	
+DS1302_RST PB12 GPIO输出
+DS1302_CLK PB13 GPIO输出
+DS1302_DAT PB14 GPIO输入/输出
+MQ136_ADC PA0 ADC1_IN0（DMA）
+MQ137_ADC PA1 ADC1_IN1（DMA）
+PM25_LED PA11 GPIO输出
+PM25_ADC	PA6	ADC2_IN6	
+ESP8266_TX	PA2	UART2_TX	
+ESP8266_RX	PA3	UART2_RX	
+BEEP	PC13	GPIO_Output	
+ALARM_LED	PC14	GPIO_Output	
+KEY14	待定	GPIO_Input	
